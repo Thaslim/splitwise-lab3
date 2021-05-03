@@ -7,10 +7,6 @@ import Signup from './components/user/Signup';
 import Landing from './components/landingPage/Landing';
 import Navbar from './components/landingPage/Navbar';
 
-import PrivateRoute from './components/routing/PrivateRoute';
-import DashboardLayout from './components/dashboard/DashboardLayout';
-import Dashboard from './components/dashboard/Dashboard';
-
 // Redux
 import store from './store';
 import Alert from './components/landingPage/Alert';
@@ -35,11 +31,6 @@ const App = () => {
             <Route exact path='/' component={Landing} />
             <Route exact path='/login' component={Login} />
             <Route exact path='/signup' component={Signup} />
-
-            <>
-              <DashboardLayout />
-              <PrivateRoute exact path='/dashboard' component={Dashboard} />
-            </>
           </Switch>
         </>
       </Router>
