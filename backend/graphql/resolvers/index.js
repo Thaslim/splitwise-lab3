@@ -1,7 +1,9 @@
 import userResolvers from './users.js';
 
 export const resolvers = {
-  Query: {},
+  Query: {
+    ...userResolvers.Query,
+  },
   Mutation: {
     ...userResolvers.Mutation,
   },

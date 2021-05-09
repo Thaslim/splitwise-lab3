@@ -22,15 +22,27 @@ export const loadUser = () => async (dispatch) => {
   if (localStorage.token) {
     setToken(localStorage.token);
   }
+  const body = {
+    query: `query {
+      getUser {
+      userName
+      userEmail
+      id
+      userPicture
+      userPhone
+      userCurrency
+      userTimezone
+      userLanguage
+    }}`,
+  };
   try {
-    const res = await axios.get('http://localhost:8000/api/login');
-
+    const res = await axios.post('/graphql', body);
+    console.log(res.data);
     dispatch({
       type: USER_LOADED,
-      payload: res.data,
+      payload: res.data.getUser,
     });
   } catch (err) {
-    console.log(err);
     dispatch({
       type: AUTH_ERROR,
     });
@@ -44,26 +56,47 @@ export const signup = ({ userName, userEmail, userPassword }) => async (
   const config = {
     headers: { 'Content-type': 'application/json' },
   };
-  const body = JSON.stringify({ userName, userEmail, userPassword });
-  try {
-    const res = await axios.post('api/users', body, config);
-
-    dispatch({
-      type: REGISTER_SUCCESS,
-      payload: res.data,
-    });
-    dispatch(loadUser());
-    dispatch(getAcceptedGroups());
-  } catch (err) {
-    const { errors } = err.response.data;
-
-    if (errors) {
-      errors.forEach((error) => dispatch(setAlert(error.msg, 'danger')));
+  const body = {
+    query: `mutation register(
+    $userName: String!
+    $userEmail: String!
+    $userPassword: String!
+  ) {
+    register(
+      registerInput: {
+        userName: $userName
+        userEmail: $userEmail
+        userPassword: $userPassword
+      }
+    ) {
+      token
     }
+  }`,
+    variables: { userName, userEmail, userPassword },
+  };
+
+  const res = await axios.post('/graphql', body, config);
+
+  if (res.data.errors) {
+    res.data.errors.forEach((error) => {
+      dispatch(setAlert(error.message, 'danger'));
+      if (error.extensions) {
+        error.extensions.errors.forEach((error) =>
+          dispatch(setAlert(error.message, 'danger'))
+        );
+      }
+    });
 
     dispatch({
       type: REGISTER_FAIL,
     });
+  } else if (res.data) {
+    dispatch({
+      type: REGISTER_SUCCESS,
+      payload: res.data.data.register,
+    });
+    dispatch(loadUser());
+    // dispatch(getAcceptedGroups());
   }
 };
 

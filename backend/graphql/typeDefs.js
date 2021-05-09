@@ -4,6 +4,16 @@ export const typeDefs = gql`
   type Auth {
     token: String!
   }
+  type User {
+    userName: String
+    userEmail: String
+    id: ID
+    userPicture: String
+    userPhone: String
+    userCurrency: String
+    userTimezone: String
+    userLanguage: String
+  }
   input RegisterInput {
     userName: String!
     userPassword: String!
@@ -15,6 +25,6 @@ export const typeDefs = gql`
     login(userEmail: String!, userPassword: String!): Auth!
   }
   type Query {
-    getUser: Auth
+    getUser: User
   }
 `;

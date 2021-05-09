@@ -2,6 +2,7 @@ import bcrypt from 'bcryptjs';
 import dotenv from 'dotenv';
 import jwt from 'jsonwebtoken';
 import User from '../../models/User.js';
+import { auth } from '../../config/auth.js';
 import { UserInputError } from 'apollo-server';
 import {
   validateRegisterInput,
@@ -24,15 +25,7 @@ export default {
         const user = await User.findOne({ userEmail }, { userPassword: 1 });
         if (!user) {
           throw new UserInputError(
-            'Whoops! We couldn’t find an account for that email address and password',
-            {
-              errors: [
-                {
-                  msg:
-                    'Whoops! We couldn’t find an account for that email address and password',
-                },
-              ],
-            }
+            'Whoops! We couldn’t find an account for that email address and password'
           );
         }
 
@@ -41,15 +34,7 @@ export default {
 
         if (!matchPwd) {
           throw new UserInputError(
-            'Whoops! We couldn’t find an account for that email address and password',
-            {
-              errors: [
-                {
-                  msg:
-                    'Whoops! We couldn’t find an account for that email address and password',
-                },
-              ],
-            }
+            'Whoops! We couldn’t find an account for that email address and password'
           );
         }
 
@@ -70,6 +55,7 @@ export default {
         throw new Error(error);
       }
     },
+
     async register(
       _,
       { registerInput: { userName, userEmail, userPassword } }
@@ -80,7 +66,7 @@ export default {
         userPassword
       );
       if (!valid) {
-        throw new UserInputError('Errors', {
+        throw new UserInputError(`Error Occured`, {
           errors,
         });
       }
@@ -90,12 +76,7 @@ export default {
 
         if (newUser) {
           throw new UserInputError(
-            `${userEmail} already belongs to another account.`,
-            {
-              errors: [
-                { msg: `${userEmail} already belongs to another account.` },
-              ],
-            }
+            `${userEmail} already belongs to another account.`
           );
         }
 
@@ -122,5 +103,14 @@ export default {
     },
   },
 
-  Query: {},
+  Query: {
+    async getUser(args, _, context) {
+      try {
+        const user = auth(context);
+        return user;
+      } catch (error) {
+        throw new Error(error);
+      }
+    },
+  },
 };

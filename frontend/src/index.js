@@ -1,5 +1,11 @@
+import React from 'react';
 import ReactDOM from 'react-dom';
 import './index.css';
-import ApolloProvider from '../src/ApolloProvider.js';
+import App from './App';
 
-ReactDOM.render(ApolloProvider, document.getElementById('root'));
+ReactDOM.render(
+  <React.StrictMode>
+    <App />
+  </React.StrictMode>,
+  document.getElementById('root')
+);
