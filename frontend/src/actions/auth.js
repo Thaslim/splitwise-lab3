@@ -35,16 +35,17 @@ export const loadUser = () => async (dispatch) => {
       userLanguage
     }}`,
   };
-  try {
-    const res = await axios.post('/graphql', body);
-    console.log(res.data);
-    dispatch({
-      type: USER_LOADED,
-      payload: res.data.getUser,
-    });
-  } catch (err) {
+
+  const res = await axios.post('/graphql', body);
+
+  if (res.data.errors) {
     dispatch({
       type: AUTH_ERROR,
+    });
+  } else if (res.data.data) {
+    dispatch({
+      type: USER_LOADED,
+      payload: res.data.data.getUser,
     });
   }
 };
@@ -80,7 +81,7 @@ export const signup = ({ userName, userEmail, userPassword }) => async (
   if (res.data.errors) {
     res.data.errors.forEach((error) => {
       dispatch(setAlert(error.message, 'danger'));
-      if (error.extensions) {
+      if (error.extensions.errors) {
         error.extensions.errors.forEach((error) =>
           dispatch(setAlert(error.message, 'danger'))
         );
@@ -90,7 +91,7 @@ export const signup = ({ userName, userEmail, userPassword }) => async (
     dispatch({
       type: REGISTER_FAIL,
     });
-  } else if (res.data) {
+  } else if (res.data.data) {
     dispatch({
       type: REGISTER_SUCCESS,
       payload: res.data.data.register,
@@ -105,26 +106,42 @@ export const login = ({ userEmail, userPassword }) => async (dispatch) => {
   const config = {
     headers: { 'content-type': 'application/json' },
   };
-  const body = JSON.stringify({ userEmail, userPassword });
-  try {
-    const res = await axios.post('api/login', body, config);
-
-    dispatch({
-      type: LOGIN_SUCCESS,
-      payload: res.data,
-    });
-    dispatch(loadUser());
-    dispatch(getAcceptedGroups());
-  } catch (err) {
-    const { errors } = err.response.data;
-
-    if (errors) {
-      errors.forEach((error) => dispatch(setAlert(error.msg, 'danger')));
+  const body = {
+    query: `mutation login(
+    $userEmail: String!
+    $userPassword: String!
+  ) {
+    login(
+        userEmail: $userEmail
+        userPassword: $userPassword
+    ) {
+      token
     }
+  }`,
+    variables: { userEmail, userPassword },
+  };
+
+  const res = await axios.post('/graphql', body, config);
+  if (res.data.errors) {
+    res.data.errors.forEach((error) => {
+      dispatch(setAlert(error.message, 'danger'));
+      if (error.extensions.errors) {
+        error.extensions.errors.forEach((error) =>
+          dispatch(setAlert(error.message, 'danger'))
+        );
+      }
+    });
 
     dispatch({
       type: LOGIN_FAIL,
     });
+  } else if (res.data.data) {
+    dispatch({
+      type: LOGIN_SUCCESS,
+      payload: res.data.data.login,
+    });
+    dispatch(loadUser());
+    // dispatch(getAcceptedGroups());
   }
 };
 

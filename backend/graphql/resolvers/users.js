@@ -4,9 +4,11 @@ import jwt from 'jsonwebtoken';
 import User from '../../models/User.js';
 import { auth } from '../../config/auth.js';
 import { UserInputError } from 'apollo-server';
+
 import {
   validateRegisterInput,
   validateLoginInput,
+  validateProfileInput,
 } from '../../utils/validator.js';
 
 dotenv.config({ path: './config/.env' });
@@ -101,12 +103,85 @@ export default {
         throw new Error(error);
       }
     },
+
+    async updateProfile(
+      _,
+      {
+        profileInput: {
+          userName,
+          userEmail,
+          userPhone,
+          userCurrency,
+          userTimezone,
+          userLanguage,
+        },
+      },
+      context
+    ) {
+      const user = await auth(context);
+      const { valid, errors, userValidPhone } = validateProfileInput(
+        userName,
+        userEmail,
+        userPhone
+      );
+      if (!valid) {
+        throw new UserInputError(`Error Occured`, {
+          errors,
+        });
+      }
+
+      try {
+        const profile = await User.findById(user.id);
+
+        const userFields = {};
+
+        if (userName && profile.userName !== userName) {
+          userFields.userName = userName;
+        }
+        if (userEmail && profile.userEmail !== userEmail) {
+          const emailExists = await User.findOne({ userEmail: userEmail });
+
+          if (emailExists) {
+            throw new UserInputError(
+              `${userEmail} already belongs to another account.`
+            );
+          }
+
+          userFields.userEmail = userEmail;
+        }
+
+        if (userCurrency && profile.userCurrency !== userCurrency) {
+          userFields.userCurrency = userCurrency;
+        }
+
+        if (userTimezone && profile.userTimezone !== userTimezone) {
+          userFields.userTimezone = userTimezone;
+        }
+
+        if (userLanguage && profile.userLanguage !== userLanguage) {
+          userFields.userLanguage = userLanguage;
+        }
+
+        if (userValidPhone && profile.userPhone !== userValidPhone) {
+          userFields.userPhone = userValidPhone;
+        }
+
+        if (profile) {
+          await User.findByIdAndUpdate(user.id, {
+            $set: userFields,
+          });
+          return { updateStatus: 'Profile Updated' };
+        }
+      } catch (error) {
+        throw new Error(error);
+      }
+    },
   },
 
   Query: {
     async getUser(args, _, context) {
       try {
-        const user = auth(context);
+        const user = await auth(context);
         return user;
       } catch (error) {
         throw new Error(error);

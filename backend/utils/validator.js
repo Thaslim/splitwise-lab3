@@ -1,3 +1,5 @@
+import phone from 'phone';
+
 export const validateRegisterInput = (userName, userEmail, userPassword) => {
   const errors = [];
   if (userName.trim() === '') {
@@ -33,5 +35,33 @@ export const validateLoginInput = (userEmail, userPassword) => {
   return {
     errors,
     valid: errors.length < 1,
+  };
+};
+
+export const validateProfileInput = (userName, userEmail, userPhone) => {
+  console.log(userName, userEmail);
+  const errors = [];
+  let validPhone;
+  let userValidPhone;
+  if (userEmail.trim() === '') {
+    errors.push({ message: 'Email must not be empty' });
+  }
+  if (userName.trim() === '') {
+    errors.push({ message: 'Username must not be empty' });
+  }
+  if (userPhone) {
+    validPhone = phone(userPhone);
+    [userValidPhone] = validPhone;
+    if (!validPhone.length) {
+      errors.push({ message: `${userPhone} not a valid phone number` });
+    }
+  }
+  if (!validPhone) {
+    userValidPhone = '';
+  }
+  return {
+    errors,
+    valid: errors.length < 1,
+    userValidPhone,
   };
 };

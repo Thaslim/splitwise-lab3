@@ -39,15 +39,16 @@ const Profile = ({ user, isAuthenticated, updateUserProfile }) => {
 
   const onSubmit = async (e) => {
     e.preventDefault();
-    const profileData = new FormData();
-    profileData.append('userName', userName);
-    profileData.append('userEmail', userEmail);
-    profileData.append('userTimezone', userTimezone);
-    profileData.append('userCurrency', userCurrency);
-    profileData.append('userLanguage', userLanguage);
-    profileData.append('userPhone', userPhone);
-    profileData.append('selectedFile', selectedFile);
-    updateUserProfile(profileData, history);
+
+    updateUserProfile({
+      userName,
+      userEmail,
+      userPhone,
+      userCurrency,
+      userTimezone,
+      userLanguage,
+      history,
+    });
   };
 
   return user === null ? (

@@ -4,35 +4,72 @@ import { loadUser } from './auth';
 import { UPDATE_PROFILE, UPDATE_PROFILE_ERROR } from './types';
 
 // Update Profile
-export const updateUserProfile = (profileData, history) => async (dispatch) => {
-  try {
-    const config = {
-      headers: { 'content-type': 'multipart/form-data' },
-    };
-    const res = await axios.post('api/me', profileData, config);
-    if (res.data !== 'server Error') {
-      dispatch({
-        type: UPDATE_PROFILE,
-        payload: res.data,
-      });
-      dispatch(setAlert('Profile updated', 'success'));
-      dispatch(loadUser());
-      history.push('/dashboard');
-    } else {
-      throw res.data;
-    }
-  } catch (error) {
-    const { errors } = error.response.data;
+export const updateUserProfile = ({
+  userName,
+  userEmail,
+  userPhone,
+  userCurrency,
+  userTimezone,
+  userLanguage,
+  history,
+}) => async (dispatch) => {
+  const config = {
+    headers: { 'content-type': 'application/json' },
+  };
+  const body = {
+    query: `mutation updateProfile(
+      $userName: String
+      $userEmail: String
+      $userPhone: String
+      $userCurrency: String
+      $userTimezone: String
+      $userLanguage: String
+    ) {
+      updateProfile(
+        profileInput:{
+        userName:$userName
+        userEmail:$userEmail
+        userPhone: $userPhone
+        userCurrency:$userCurrency
+        userLanguage: $userLanguage
+        userTimezone:$userTimezone
+      }
+      ) {
+        updateStatus
+      }
+    }`,
+    variables: {
+      userName,
+      userEmail,
+      userPhone,
+      userCurrency,
+      userTimezone,
+      userLanguage,
+    },
+  };
 
-    if (errors) {
-      errors.forEach((err) => dispatch(setAlert(err.msg, 'danger')));
-    }
+  const res = await axios.post('/graphql', body, config);
+
+  if (res.data.errors) {
+    res.data.errors.forEach((error) => {
+      dispatch(setAlert(error.message, 'danger'));
+      if (error.extensions.errors) {
+        error.extensions.errors.forEach((error) =>
+          dispatch(setAlert(error.message, 'danger'))
+        );
+      }
+    });
+
     dispatch({
       type: UPDATE_PROFILE_ERROR,
-      payload: {
-        msg: error.response.statusText,
-        status: error.response.status,
-      },
     });
+  } else if (res.data.data) {
+    dispatch({
+      type: UPDATE_PROFILE,
+      payload: res.data.data.updateStatus,
+    });
+    dispatch(setAlert('Profile updated', 'success'));
+    dispatch(loadUser());
+    history.push('/dashboard');
   }
 };
