@@ -37,12 +37,11 @@ const Dashboard = ({
     }
     if (user && groups && groups.iOwe.length) {
       const uniqueIoweMembers = _(groups.iOwe)
-        .groupBy('memberID._id')
+        .groupBy('memberID.id')
         .map((obj, key) => ({
           memberID: key,
           memberName: obj[0].memberID.userName,
           amount: roundToTwo(_.sumBy(obj, 'amount')),
-          memberPic: obj[0].memberID.userPicture || '',
         }))
         .value();
       setOweNames(uniqueIoweMembers);
@@ -59,12 +58,11 @@ const Dashboard = ({
 
     if (user && groups && groups.owedToMe.length) {
       const uniqueOweToMeMembers = _(groups.owedToMe)
-        .groupBy('memberID._id')
+        .groupBy('memberID.id')
         .map((obj, key) => ({
           memberID: key,
           memberName: obj[0].memberID.userName,
           amount: roundToTwo(_.sumBy(obj, 'amount')),
-          memberPic: obj[0].memberID.userPicture || '',
         }))
         .value();
 
@@ -227,10 +225,7 @@ const Dashboard = ({
                         csymbol={cSymbol}
                         txt='you owe'
                         groupNames={oweToGroupNames}
-                        imgSrc={
-                          (val.memberPic && `api/images/${val.memberPic}`) ||
-                          profilePic
-                        }
+                        imgSrc={profilePic}
                       />
                     </li>
                   ))}
@@ -252,10 +247,7 @@ const Dashboard = ({
                         csymbol={cSymbol}
                         groupNames={getBackFromGroupNames}
                         txt='owes you'
-                        imgSrc={
-                          (val.memberPic && `api/images/${val.memberPic}`) ||
-                          profilePic
-                        }
+                        imgSrc={profilePic}
                       />
                       <br />
                     </li>

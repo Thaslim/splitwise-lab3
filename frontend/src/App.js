@@ -11,7 +11,7 @@ import CreateGroup from './components/groups/CreateGroup';
 import PrivateRoute from './components/routing/PrivateRoute';
 import DashboardLayout from './components/dashboard/DashboardLayout';
 import Dashboard from './components/dashboard/Dashboard';
-// import Groups from './components/groupsExpense/Groups';
+import Groups from './components/groupsExpense/Groups';
 // Redux
 import store from './store';
 import Alert from './components/landingPage/Alert';
@@ -43,9 +43,7 @@ const App = () => {
             <>
               <DashboardLayout />
               <PrivateRoute exact path='/dashboard' component={Dashboard} />
-              {/* <PrivateRoute exact path='/groups/:id' component={Groups} />
-       
-        */}
+              <PrivateRoute exact path='/groups/:id' component={Groups} />
             </>
           </Switch>
         </>

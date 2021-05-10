@@ -60,13 +60,29 @@ export const getAcceptedGroups = () => async (dispatch) => {
       }
       iOwe{
         id,
-        userName,
-        userEmail
+        amount,
+        memberID{
+          id
+          userName,
+          userEmail
+        }
+        groupID{
+          id
+          groupName
+        }
       }
       owedToMe{
         id,
-        userName,
-        userEmail
+        amount,
+        memberID{
+          id
+          userName,
+          userEmail
+        }
+        groupID{
+          id
+          groupName
+        }
       }
     }}`,
   };
@@ -91,34 +107,43 @@ export const getAcceptedGroups = () => async (dispatch) => {
 export const addExpense = ({ groupID, description, amount, date }) => async (
   dispatch
 ) => {
-  try {
-    const config = {
-      headers: { 'Content-type': 'application/json' },
-    };
-    const body = JSON.stringify({ groupID, description, amount, date });
-    const res = await axios.post(
-      'http://localhost:8000/api/groups/',
-      body,
-      config
-    );
+  const config = {
+    headers: { 'Content-type': 'application/json' },
+  };
+  const body = {
+    query: `mutation addExpense(
+          $groupID: ID!
+          $description: String!
+          $amount: String!
+          $date: Date!
+        ) {
+          addExpense(
+            groupID:$groupID
+            description:$description
+            amount:$amount
+            date:$date
+          
+          ) {
+            updateStatus
+          }
+        }`,
+    variables: { groupID, description, amount, date },
+  };
+  const res = await axios.post('/graphql', body, config);
+  if (res.data.errors) {
+    res.data.errors.forEach((error) => {
+      dispatch(setAlert(error.message, 'danger'));
+    });
+    dispatch({
+      type: ADD_EXPENSE_ERROR,
+    });
+  } else if (res.data.data) {
     dispatch({
       type: ADD_EXPENSE,
-      payload: res.data,
+      payload: res.data.data.addExpense,
     });
     dispatch(setAlert('Expense Added', 'success'));
     dispatch(getAcceptedGroups());
-  } catch (error) {
-    const { errors } = error.response.data;
-    if (errors) {
-      errors.forEach((err) => dispatch(setAlert(err.msg, 'danger')));
-    }
-    dispatch({
-      type: ADD_EXPENSE_ERROR,
-      payload: {
-        msg: error.response.statusText,
-        status: error.response.status,
-      },
-    });
   }
 };
 
@@ -172,48 +197,71 @@ export const createNewGroup = ({ groupName, groupMembers, history }) => async (
   }
 };
 
-// Get Group Activity
-export const getGroupActivity = (groupID) => async (dispatch) => {
-  try {
-    const res = await axios.get(`/api/groups/${groupID}`);
-    dispatch({
-      type: GET_GROUP_ACTIVITY,
-      payload: res.data,
+export const getGroupActivity = ({ groupID }) => async (dispatch) => {
+  const body = {
+    query: `query {
+      getExpense(groupID:${JSON.stringify(groupID)}) {
+      _id
+      expenses{
+        _id
+        paidByName
+        paidByEmail
+        description
+        amount
+        date
+      }
+    }}`,
+  };
+
+  const res = await axios.post('/graphql', body);
+
+  if (res.data.errors) {
+    res.data.errors.forEach((error) => {
+      dispatch(setAlert(error.message, 'danger'));
     });
-  } catch (error) {
-    const { errors } = error.response.data;
-    if (errors) {
-      errors.forEach((err) => dispatch(setAlert(err.msg, 'danger')));
-    }
     dispatch({
       type: GET_GROUP_ACTIVITY_ERROR,
-      payload: {
-        msg: error.response.statusText,
-        status: error.response.status,
-      },
+    });
+  } else if (res.data.data) {
+    dispatch({
+      type: GET_GROUP_ACTIVITY,
+      payload: res.data.data.getExpense,
     });
   }
 };
 
-// Get Group Balances
-export const getGroupBalances = (groupID) => async (dispatch) => {
-  try {
-    const res = await axios.get(`/api/groups/group-balance/${groupID}`);
-    dispatch({
-      type: GET_GROUP_BALANCE,
-      payload: res.data,
+export const getGroupBalances = ({ groupID }) => async (dispatch) => {
+  console.log(typeof groupID);
+  const body = {
+    query: `query {
+      getGroupBalance(groupID:${JSON.stringify(groupID)}) {
+      members{
+        getBack
+        give
+        groupID
+        memberID{
+          id
+          userName
+          userEmail
+        }
+      }
+
+    }}`,
+  };
+
+  const res = await axios.post('/graphql', body);
+
+  if (res.data.errors) {
+    res.data.errors.forEach((error) => {
+      dispatch(setAlert(error.message, 'danger'));
     });
-  } catch (error) {
-    const { errors } = error.response.data;
-    if (errors) {
-      errors.forEach((err) => dispatch(setAlert(err.msg, 'danger')));
-    }
     dispatch({
       type: GET_GROUP_BALANCE_ERROR,
-      payload: {
-        msg: error.response.statusText,
-        status: error.response.status,
-      },
+    });
+  } else if (res.data.data) {
+    dispatch({
+      type: GET_GROUP_BALANCE,
+      payload: res.data.data.getGroupBalance,
     });
   }
 };

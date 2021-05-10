@@ -1,17 +1,27 @@
 import gql from 'graphql-tag';
 
 export const typeDefs = gql`
+  scalar Date
   type Auth {
     token: String!
   }
   type Update {
     updateStatus: String!
   }
+  type MemberID {
+    id: ID
+    userName: String!
+    userEmail: String!
+  }
+  type Group {
+    id: ID
+    groupName: String!
+  }
   type Bal {
     id: ID
-    userName: String
-    userEmail: String
-    groupName: String
+    amount: Float
+    memberID: MemberID
+    groupID: Group
   }
   type GroupName {
     groupName: String
@@ -49,7 +59,29 @@ export const typeDefs = gql`
     userTimezone: String
     userLanguage: String
   }
+  type Expense {
+    _id: ID!
+    paidByName: String!
+    paidByEmail: String!
+    description: String!
+    amount: Float!
+    date: Date!
+  }
+  type groupExpense {
+    _id: ID!
+    expenses: [Expense]
+  }
 
+  type groupMemBalance {
+    getBack: Float
+    give: Float
+    groupID: ID!
+    memberID: MemberID
+  }
+
+  type groupBalance {
+    members: [groupMemBalance]
+  }
   type Mutation {
     register(registerInput: RegisterInput): Auth!
     login(userEmail: String!, userPassword: String!): Auth!
@@ -57,10 +89,18 @@ export const typeDefs = gql`
     createGroup(groupName: String, groupMembers: [Member]): Update!
     acceptInvitation(groupID: ID!): Update!
     leaveGroup(groupID: ID!): Update!
+    addExpense(
+      groupID: ID!
+      description: String!
+      amount: String!
+      date: Date
+    ): Update!
   }
   type Query {
     getUser: User
     getAllUsers: [User]
     myGroups: GroupsList
+    getExpense(groupID: String!): groupExpense
+    getGroupBalance(groupID: String!): groupBalance
   }
 `;

@@ -87,7 +87,7 @@ const AddBillPopUp = ({
               >
                 {mygroups &&
                   mygroups.map((val) => (
-                    <MenuItem key={val._id} value={val._id}>
+                    <MenuItem key={val.id} value={val.id}>
                       {val.groupName}
                     </MenuItem>
                   ))}

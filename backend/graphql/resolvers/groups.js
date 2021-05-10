@@ -21,6 +21,26 @@ export default {
         throw new Error(error);
       }
     },
+
+    async getGroupBalance(args, { groupID }, context) {
+      try {
+        const user = await auth(context);
+
+        if (user) {
+          const members = await GroupMembers.find(
+            { groupID },
+            { _id: 0 }
+          ).populate({
+            path: 'memberID',
+            select: ['userName', 'userEmail'],
+          });
+          return { members };
+        }
+      } catch (error) {
+        throw new Error(error);
+      }
+    },
+
     async myGroups(args, _, context) {
       try {
         const user = await auth(context);
@@ -67,6 +87,7 @@ export default {
             groups: mygroupList.groups,
             invites: mygroupList.invites,
             iOwe: mygroupList.iOwe,
+
             owedToMe: mygroupList.owedToMe,
           };
         }

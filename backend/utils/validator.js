@@ -76,3 +76,18 @@ export const validateGroupInput = (groupName) => {
     valid: errors.length < 1,
   };
 };
+
+export const validateExpenseInput = (description, amount) => {
+  const errors = [];
+  if (description.trim() === '') {
+    errors.push({ message: 'Description must not be empty' });
+  }
+  const regEx = /^\$?[0-9]?((\.[0-9]+)|([0-9]+(\.[0-9]+)?))$/g;
+  if (!amount.match(regEx)) {
+    errors.push({ message: 'Enter a valid amount' });
+  }
+  return {
+    errors,
+    valid: errors.length < 1,
+  };
+};

@@ -3,13 +3,13 @@ import { roundToTwo } from './calc';
 
 const getIndividualGroupBalance = (arr) => {
   const uniqueOwedToMeGroups = _.groupBy(arr, function (group) {
-    return group.memberID._id;
+    return group.memberID.id;
   });
 
   let groupMembersBalance = [];
   _.forEach(uniqueOwedToMeGroups, function (value) {
     let mem = _(value)
-      .groupBy('groupID._id')
+      .groupBy('groupID.id')
       .map((obj, key) => ({
         memberName: obj[0].memberID.userName,
         groupName: obj[0].groupID.groupName,
