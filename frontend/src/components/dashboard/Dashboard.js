@@ -10,7 +10,6 @@ import ListBalance from './ListBalance';
 import Spinner from '../landingPage/Spinner';
 import profilePic from '../user/profile-pic.png';
 import getIndividualGroupBalance from '../../utils/getGroupBalance.js';
-import SettleUp from '../bill/SettleUp.js';
 
 const Dashboard = ({
   group: { groupInfo, groups, loading },
@@ -19,7 +18,6 @@ const Dashboard = ({
   isAuthenticated,
 }) => {
   const [billPopUp, setBillPopUp] = useState(false);
-  const [settleUp, setSettleUp] = useState(false);
   const [cSymbol, setCSymbol] = useState('');
   const [getBack, setGetBack] = useState(0.0);
   const [owe, setOwe] = useState(0.0);
@@ -120,17 +118,7 @@ const Dashboard = ({
             >
               Add an expense
             </button>
-            &emsp;
-            <button
-              type='button'
-              className='btn btn-large bg-teal text-white'
-              onClick={() => {
-                setSettleUp(true);
-              }}
-            >
-              Settle up
-            </button>
-            &emsp;
+            &emsp; &emsp;
           </div>
         </div>
 
@@ -289,17 +277,6 @@ const Dashboard = ({
               setBillPopUp={setBillPopUp}
               mygroups={groups && groups.mygroupList.groups}
               currency={cSymbol}
-            />
-          </>
-        )}
-        {settleUp && (
-          <>
-            <SettleUp
-              settleUp={settleUp}
-              setSettleUp={setSettleUp}
-              currency={cSymbol}
-              oweNames={oweNames}
-              getBackNames={getBackNames}
             />
           </>
         )}

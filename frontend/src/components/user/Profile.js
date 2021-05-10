@@ -17,7 +17,6 @@ const Profile = ({ user, isAuthenticated, updateUserProfile }) => {
   const [showName, setShowName] = useState(false);
   const [showEmail, setShowEmail] = useState(false);
   const [showPhone, setShowPhone] = useState(false);
-  const [selectedFile, setSelectedFile] = useState(null);
   const [filePath, setFilePath] = useState('');
 
   const history = useHistory();
@@ -78,7 +77,6 @@ const Profile = ({ user, isAuthenticated, updateUserProfile }) => {
                   style={{ maxWidth: '250px' }}
                   size='10'
                   type='file'
-                  onChange={(e) => setSelectedFile(e.target.files[0])}
                 />
               </div>
 

@@ -27,7 +27,6 @@ export const loadUser = () => async (dispatch) => {
       getUser {
       userName
       userEmail
-      id
       userPicture
       userPhone
       userCurrency
@@ -97,7 +96,7 @@ export const signup = ({ userName, userEmail, userPassword }) => async (
       payload: res.data.data.register,
     });
     dispatch(loadUser());
-    // dispatch(getAcceptedGroups());
+    dispatch(getAcceptedGroups());
   }
 };
 
@@ -141,7 +140,7 @@ export const login = ({ userEmail, userPassword }) => async (dispatch) => {
       payload: res.data.data.login,
     });
     dispatch(loadUser());
-    // dispatch(getAcceptedGroups());
+    dispatch(getAcceptedGroups());
   }
 };
 

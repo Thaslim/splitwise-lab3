@@ -7,81 +7,82 @@ import {
   GET_ALL_USERS_ERROR,
   GET_GROUP_ACTIVITY,
   GET_GROUP_ACTIVITY_ERROR,
-  EDIT_GROUP_INFO,
-  EDIT_GROUP_INFO_ERROR,
   ACCEPT_INVITATION,
   ACCEPT_INVITATION_ERROR,
-  GET_RECENT_ACTIVITY,
-  GET_RECENT_ACTIVITY_ERROR,
   LEAVE_GROUP,
   LEAVE_GROUP_ERROR,
   GET_GROUPS,
   GET_GROUPS_ERROR,
   ADD_EXPENSE,
   ADD_EXPENSE_ERROR,
-  SETTLE_EXPENSE,
-  SETTLE_EXPENSE_ERROR,
   GET_GROUP_BALANCE,
   GET_GROUP_BALANCE_ERROR,
 } from './types';
 
-// Get Recent Activity
-export const getRecentActivity = () => async (dispatch) => {
-  try {
-    const res = await axios.get('http://localhost:8000/api/activity');
-    dispatch({
-      type: GET_RECENT_ACTIVITY,
-      payload: res.data,
-    });
-  } catch (error) {
-    dispatch({
-      type: GET_RECENT_ACTIVITY_ERROR,
-      payload: {
-        msg: error.response.statusText,
-        status: error.response.status,
-      },
-    });
-  }
-};
-
-// Get registered user list
 export const getAllUsers = () => async (dispatch) => {
-  try {
-    const res = await axios.get('api/new-group');
-    dispatch({
-      type: GET_ALL_USERS,
-      payload: res.data,
+  const body = {
+    query: `query {
+      getAllUsers {
+      userName
+      userEmail
+    }}`,
+  };
+
+  const res = await axios.post('/graphql', body);
+
+  if (res.data.errors) {
+    res.data.errors.forEach((error) => {
+      dispatch(setAlert(error.message, 'danger'));
     });
-  } catch (error) {
-    const { errors } = error.response.data;
-    if (errors) {
-      errors.forEach((err) => dispatch(setAlert(err.msg, 'danger')));
-    }
     dispatch({
       type: GET_ALL_USERS_ERROR,
-      payload: {
-        msg: error.response.statusText,
-        status: error.response.status,
-      },
+    });
+  } else if (res.data.data) {
+    dispatch({
+      type: GET_ALL_USERS,
+      payload: res.data.data.getAllUsers,
     });
   }
 };
 
 // Get users active groups list
 export const getAcceptedGroups = () => async (dispatch) => {
-  try {
-    const res = await axios.get('http://localhost:8000/api/my-groups/');
-    dispatch({
-      type: GET_GROUPS,
-      payload: res.data,
+  const body = {
+    query: `query {
+      myGroups {
+      groups{
+        groupName,
+        id
+      }
+      invites{
+        groupName,
+        id
+      }
+      iOwe{
+        id,
+        userName,
+        userEmail
+      }
+      owedToMe{
+        id,
+        userName,
+        userEmail
+      }
+    }}`,
+  };
+  const res = await axios.post('/graphql', body);
+
+  if (res.data.errors) {
+    res.data.errors.forEach((error) => {
+      dispatch(setAlert(error.message, 'danger'));
     });
-  } catch (error) {
     dispatch({
       type: GET_GROUPS_ERROR,
-      payload: {
-        msg: error.response.statusText,
-        status: error.response.status,
-      },
+    });
+  } else if (res.data.data) {
+    dispatch({
+      type: GET_GROUPS,
+      payload: res.data.data.myGroups,
     });
   }
 };
@@ -106,7 +107,6 @@ export const addExpense = ({ groupID, description, amount, date }) => async (
     });
     dispatch(setAlert('Expense Added', 'success'));
     dispatch(getAcceptedGroups());
-    dispatch(getRecentActivity());
   } catch (error) {
     const { errors } = error.response.data;
     if (errors) {
@@ -122,64 +122,53 @@ export const addExpense = ({ groupID, description, amount, date }) => async (
   }
 };
 
-// Settle expense
-export const settleExpense = (settleWithID) => async (dispatch) => {
-  try {
-    const config = {
-      headers: { 'Content-type': 'application/json' },
-    };
-    const body = JSON.stringify({ settleWithID });
-    const res = await axios.post('/api/settle', body, config);
-    dispatch({
-      type: SETTLE_EXPENSE,
-      payload: res.data,
-    });
-    dispatch(setAlert('Settled balance', 'success'));
-    dispatch(getAcceptedGroups());
-    dispatch(getRecentActivity());
-  } catch (error) {
-    const { errors } = error.response.data;
-    if (errors) {
-      errors.forEach((err) => dispatch(setAlert(err.msg, 'danger')));
-    }
-    dispatch({
-      type: SETTLE_EXPENSE_ERROR,
-      payload: {
-        msg: error.response.statusText,
-        status: error.response.status,
-      },
-    });
-  }
-};
-
 // Create New Group
 // eslint-disable-next-line import/prefer-default-export
-export const createNewGroup = (groupData, history) => async (dispatch) => {
-  try {
-    const config = {
-      headers: { 'content-type': 'multipart/form-data' },
-    };
-    const res = await axios.post('api/new-group', groupData, config);
+export const createNewGroup = ({ groupName, groupMembers, history }) => async (
+  dispatch
+) => {
+  const config = {
+    headers: { 'Content-type': 'application/json' },
+  };
+  const body = {
+    query: `mutation createGroup(
+      $groupName: String!,
+      $groupMembers: [Member]
+    ) {
+      createGroup(
+        groupName:$groupName,
+        groupMembers:$groupMembers
+      
+      ) {
+        updateStatus
+      }
+    }`,
+    variables: { groupName, groupMembers },
+  };
+
+  const res = await axios.post('/graphql', body, config);
+
+  if (res.data.errors) {
+    res.data.errors.forEach((error) => {
+      dispatch(setAlert(error.message, 'danger'));
+      if (error.extensions.errors) {
+        error.extensions.errors.forEach((error) =>
+          dispatch(setAlert(error.message, 'danger'))
+        );
+      }
+    });
+
+    dispatch({
+      type: CREATE_GROUP_ERROR,
+    });
+  } else if (res.data.data) {
     dispatch({
       type: CREATE_GROUP,
       payload: res.data,
     });
     dispatch(setAlert('Group created', 'success'));
-    dispatch(getAcceptedGroups());
-    dispatch(getRecentActivity());
+    // dispatch(getAcceptedGroups());
     history.push('/dashboard');
-  } catch (error) {
-    const { errors } = error.response.data;
-    if (errors) {
-      errors.forEach((err) => dispatch(setAlert(err.msg, 'danger')));
-    }
-    dispatch({
-      type: CREATE_GROUP_ERROR,
-      payload: {
-        msg: error.response.statusText,
-        status: error.response.status,
-      },
-    });
   }
 };
 
@@ -229,36 +218,6 @@ export const getGroupBalances = (groupID) => async (dispatch) => {
   }
 };
 
-// edit group info based on id
-export const editGroupInfo = (groupData, history) => async (dispatch) => {
-  try {
-    const config = {
-      headers: { 'content-type': 'multipart/form-data' },
-    };
-    const res = await axios.post(
-      '/api/my-groups/update-group',
-      groupData,
-      config
-    );
-    dispatch({
-      type: EDIT_GROUP_INFO,
-      payload: res.data,
-    });
-    dispatch(setAlert('GroupInfo updated', 'success'));
-    dispatch(getAcceptedGroups());
-    dispatch(getRecentActivity());
-    history.push('/dashboard');
-  } catch (error) {
-    dispatch({
-      type: EDIT_GROUP_INFO_ERROR,
-      payload: {
-        msg: error.response.statusText,
-        status: error.response.status,
-      },
-    });
-  }
-};
-
 // Accept group Invitation
 export const acceptGroupInvitation = (groupID, groupName) => async (
   dispatch
@@ -280,7 +239,6 @@ export const acceptGroupInvitation = (groupID, groupName) => async (
     });
     dispatch(setAlert('Invitation Accepted', 'success'));
     dispatch(getAcceptedGroups());
-    dispatch(getRecentActivity());
   } catch (error) {
     const { errors } = error.response.data;
     if (errors) {
@@ -308,7 +266,6 @@ export const leaveGroup = (groupID, groupName) => async (dispatch) => {
       payload: res.data,
     });
     dispatch(getAcceptedGroups());
-    dispatch(getRecentActivity());
   } catch (error) {
     const { errors } = error.response.data;
     if (errors) {

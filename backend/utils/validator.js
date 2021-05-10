@@ -65,3 +65,14 @@ export const validateProfileInput = (userName, userEmail, userPhone) => {
     userValidPhone,
   };
 };
+
+export const validateGroupInput = (groupName) => {
+  const errors = [];
+  if (groupName.trim() === '') {
+    errors.push({ message: 'GroupName must not be empty' });
+  }
+  return {
+    errors,
+    valid: errors.length < 1,
+  };
+};
