@@ -15,7 +15,7 @@ const DashboardLayout = ({
   useEffect(() => {
     if (isAuthenticated && loading) return <Redirect to='/dashboard' />;
     if (groups) {
-      setAccList(groups.mygroupList.groups);
+      setAccList(groups.groups);
     }
   }, [groups, user, loading, isAuthenticated]);
 
@@ -73,13 +73,13 @@ const DashboardLayout = ({
                 <>
                   <ul>
                     {accList.map((group) => (
-                      <li key={group._id}>
+                      <li key={group.id}>
                         <NavLink
                           exact
                           activeClassName='color-change'
                           style={{ fontSize: '0.85rem' }}
                           className='left_sidebar'
-                          to={`/groups/${group._id}`}
+                          to={`/groups/${group.id}`}
                         >
                           <i className='fas fa-tag' /> &nbsp;
                           {group.groupName}

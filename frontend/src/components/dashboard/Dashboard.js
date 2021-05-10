@@ -35,8 +35,8 @@ const Dashboard = ({
     if (user && loading) {
       getAcceptedGroups();
     }
-    if (user && groups && groups.mygroupList.iOwe.length) {
-      const uniqueIoweMembers = _(groups.mygroupList.iOwe)
+    if (user && groups && groups.iOwe.length) {
+      const uniqueIoweMembers = _(groups.iOwe)
         .groupBy('memberID._id')
         .map((obj, key) => ({
           memberID: key,
@@ -46,12 +46,10 @@ const Dashboard = ({
         }))
         .value();
       setOweNames(uniqueIoweMembers);
-      const iOweAmount = roundToTwo(_.sumBy(groups.mygroupList.iOwe, 'amount'));
+      const iOweAmount = roundToTwo(_.sumBy(groups.iOwe, 'amount'));
       setOwe(iOweAmount);
 
-      const memBalanceEachGroup = getIndividualGroupBalance(
-        groups.mygroupList.iOwe
-      );
+      const memBalanceEachGroup = getIndividualGroupBalance(groups.iOwe);
       setOweToGroupNames(memBalanceEachGroup);
     } else {
       setOweNames([]);
@@ -59,8 +57,8 @@ const Dashboard = ({
       setOweToGroupNames([]);
     }
 
-    if (user && groups && groups.mygroupList.owedToMe.length) {
-      const uniqueOweToMeMembers = _(groups.mygroupList.owedToMe)
+    if (user && groups && groups.owedToMe.length) {
+      const uniqueOweToMeMembers = _(groups.owedToMe)
         .groupBy('memberID._id')
         .map((obj, key) => ({
           memberID: key,
@@ -72,15 +70,11 @@ const Dashboard = ({
 
       setgetBackNames(uniqueOweToMeMembers);
 
-      const getBackAmount = roundToTwo(
-        _.sumBy(groups.mygroupList.owedToMe, 'amount')
-      );
+      const getBackAmount = roundToTwo(_.sumBy(groups.owedToMe, 'amount'));
 
       setGetBack(getBackAmount);
 
-      const memBalanceEachGroup = getIndividualGroupBalance(
-        groups.mygroupList.owedToMe
-      );
+      const memBalanceEachGroup = getIndividualGroupBalance(groups.owedToMe);
       setGetBackFromGroupNames(memBalanceEachGroup);
     } else {
       setgetBackNames([]);
@@ -123,7 +117,7 @@ const Dashboard = ({
         </div>
 
         <div className='total_balances'>
-          {!groups.mygroupList.groups.length && (
+          {!groups.groups.length && (
             <>
               <h3>Welcome to Splitwise!</h3>
               <h5>
@@ -275,7 +269,7 @@ const Dashboard = ({
             <AddBillPopUp
               billPopUp={billPopUp}
               setBillPopUp={setBillPopUp}
-              mygroups={groups && groups.mygroupList.groups}
+              mygroups={groups && groups.groups}
               currency={cSymbol}
             />
           </>

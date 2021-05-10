@@ -219,64 +219,86 @@ export const getGroupBalances = (groupID) => async (dispatch) => {
 };
 
 // Accept group Invitation
-export const acceptGroupInvitation = (groupID, groupName) => async (
-  dispatch
-) => {
-  try {
-    const config = {
-      headers: { 'content-type': 'application/json' },
-    };
+export const acceptGroupInvitation = (groupID) => async (dispatch) => {
+  const config = {
+    headers: { 'content-type': 'application/json' },
+  };
 
-    const body = { groupID, groupName };
-    const res = await axios.post(
-      'api/my-groups/accept-invitation',
-      body,
-      config
-    );
+  const body = {
+    query: `mutation acceptInvitation(
+        $groupID: ID!
+      ) {
+        acceptInvitation(
+          groupID:$groupID
+        
+        ) {
+          updateStatus
+        }
+      }`,
+    variables: { groupID },
+  };
+  const res = await axios.post('/graphql', body, config);
+
+  if (res.data.errors) {
+    res.data.errors.forEach((error) => {
+      dispatch(setAlert(error.message, 'danger'));
+      if (error.extensions.errors) {
+        error.extensions.errors.forEach((error) =>
+          dispatch(setAlert(error.message, 'danger'))
+        );
+      }
+    });
+    dispatch({
+      type: ACCEPT_INVITATION_ERROR,
+    });
+  } else if (res.data.data) {
     dispatch({
       type: ACCEPT_INVITATION,
-      payload: res.data,
+      payload: res.data.data.acceptInvitation,
     });
     dispatch(setAlert('Invitation Accepted', 'success'));
     dispatch(getAcceptedGroups());
-  } catch (error) {
-    const { errors } = error.response.data;
-    if (errors) {
-      errors.forEach((err) => dispatch(setAlert(err.msg, 'danger')));
-    }
-    dispatch({
-      type: ACCEPT_INVITATION_ERROR,
-      payload: {
-        msg: error.response.statusText,
-        status: error.response.status,
-      },
-    });
   }
 };
 
-export const leaveGroup = (groupID, groupName) => async (dispatch) => {
-  try {
-    const config = {
-      headers: { 'content-type': 'application/json' },
-    };
-    const body = { groupID, groupName };
-    const res = await axios.post('api/my-groups/leave-group', body, config);
-    dispatch({
-      type: LEAVE_GROUP,
-      payload: res.data,
+export const leaveGroup = (groupID) => async (dispatch) => {
+  const config = {
+    headers: { 'content-type': 'application/json' },
+  };
+
+  const body = {
+    query: `mutation leaveGroup(
+        $groupID: ID!
+      ) {
+        leaveGroup(
+          groupID:$groupID
+        
+        ) {
+          updateStatus
+        }
+      }`,
+    variables: { groupID },
+  };
+  const res = await axios.post('/graphql', body, config);
+
+  if (res.data.errors) {
+    res.data.errors.forEach((error) => {
+      dispatch(setAlert(error.message, 'danger'));
+      if (error.extensions.errors) {
+        error.extensions.errors.forEach((error) =>
+          dispatch(setAlert(error.message, 'danger'))
+        );
+      }
     });
-    dispatch(getAcceptedGroups());
-  } catch (error) {
-    const { errors } = error.response.data;
-    if (errors) {
-      errors.forEach((err) => dispatch(setAlert(err.msg, 'danger')));
-    }
     dispatch({
       type: LEAVE_GROUP_ERROR,
-      payload: {
-        msg: error.response.statusText,
-        status: error.response.status,
-      },
     });
+  } else if (res.data.data) {
+    dispatch({
+      type: LEAVE_GROUP,
+      payload: res.data.data.acceptInvitation,
+    });
+
+    dispatch(getAcceptedGroups());
   }
 };

@@ -42,7 +42,7 @@ const App = () => {
             <PrivateRoute exact path='/my-groups' component={MyGroups} />
             <>
               <DashboardLayout />
-              {/* <PrivateRoute exact path='/dashboard' component={Dashboard} /> */}
+              <PrivateRoute exact path='/dashboard' component={Dashboard} />
               {/* <PrivateRoute exact path='/groups/:id' component={Groups} />
        
         */}

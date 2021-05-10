@@ -53,7 +53,7 @@ const MyGroups = ({
           {invites &&
             invites.map((el) => {
               return (
-                <li key={el._id}>
+                <li key={el.id}>
                   <div
                     style={{
                       padding: '2% 3% 1% 1%',
@@ -61,11 +61,7 @@ const MyGroups = ({
                   >
                     <img
                       className='userImage'
-                      src={
-                        (el.groupPicture &&
-                          `http://3.135.185.14:8000/api/images/${el.groupPicture}`) ||
-                        profilePic
-                      }
+                      src={profilePic}
                       alt='groupPic'
                     />
                     &nbsp;
@@ -74,9 +70,7 @@ const MyGroups = ({
                     <button
                       type='submit'
                       className='btm btn-outline-danger btn-md rounded'
-                      onClick={() =>
-                        acceptGroupInvitation(`${el._id}`, `${el.groupName}`)
-                      }
+                      onClick={() => acceptGroupInvitation(`${el.id}`)}
                     >
                       Accept
                     </button>
@@ -100,7 +94,7 @@ const MyGroups = ({
           {showGroupInfo &&
             showGroupInfo.map((el) => {
               return (
-                <li key={el._id}>
+                <li key={el.id}>
                   <div
                     style={{
                       padding: '2% 3% 1% 1%',
@@ -108,15 +102,11 @@ const MyGroups = ({
                   >
                     <NavLink
                       style={{ textDecoration: 'none', color: '#1cc29f' }}
-                      to={`/groups/${el._id}`}
+                      to={`/groups/${el.id}`}
                     >
                       <img
                         className='userImage'
-                        src={
-                          (el.groupPicture &&
-                            `http://3.135.185.14:8000/api/images/${el.groupPicture}`) ||
-                          profilePic
-                        }
+                        src={profilePic}
                         alt='groupPic'
                       />
                       &nbsp;
@@ -126,7 +116,7 @@ const MyGroups = ({
                     <button
                       type='submit'
                       className='btm btn-outline-danger btn-md rounded'
-                      onClick={() => handleClick(el._id, el.groupName)}
+                      onClick={() => handleClick(el.id)}
                     >
                       Leave Group
                     </button>

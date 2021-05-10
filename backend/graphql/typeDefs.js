@@ -53,8 +53,10 @@ export const typeDefs = gql`
   type Mutation {
     register(registerInput: RegisterInput): Auth!
     login(userEmail: String!, userPassword: String!): Auth!
-    updateProfile(profileInput: ProfileInput): Update
-    createGroup(groupName: String, groupMembers: [Member]): Update
+    updateProfile(profileInput: ProfileInput): Update!
+    createGroup(groupName: String, groupMembers: [Member]): Update!
+    acceptInvitation(groupID: ID!): Update!
+    leaveGroup(groupID: ID!): Update!
   }
   type Query {
     getUser: User

@@ -62,7 +62,7 @@ export default {
               'Whoops! You dont belong to any groups yet!'
             );
           }
-          console.log(mygroupList);
+
           return {
             groups: mygroupList.groups,
             invites: mygroupList.invites,
@@ -100,7 +100,6 @@ export default {
           group.save();
           const member = new GroupMembers({ groupID, memberID: user.id });
           member.save();
-          console.log(groupMembers);
           let ids = [];
           if (groupMembers) {
             const memEmails = groupMembers.map((mem) => mem.memberEmail);
@@ -128,90 +127,56 @@ export default {
         throw new Error(error);
       }
     },
+
+    async acceptInvitation(_, { groupID }, context) {
+      try {
+        const user = await auth(context);
+        if (user) {
+          const member = new GroupMembers({ groupID, memberID: user.id });
+          member.save();
+          await User.findByIdAndUpdate(user.id, {
+            $addToSet: { groups: groupID },
+            $pull: {
+              invites: groupID,
+            },
+          });
+          return { updateStatus: 'Invitation Accepted' };
+        }
+      } catch (error) {
+        throw new Error(error);
+      }
+    },
+
+    async leaveGroup(_, { groupID }, context) {
+      try {
+        const user = await auth(context);
+        if (user) {
+          const currentUserBalances = await User.findById(user.id, {
+            iOwe: 1,
+            owedToMe: 1,
+            _id: 0,
+          });
+          const groups1 = currentUserBalances.iOwe.filter((ele) => {
+            return String(ele.groupID) === String(groupID);
+          });
+          const groups2 = currentUserBalances.owedToMe.filter((ele) => {
+            return String(ele.groupID) === String(groupID);
+          });
+
+          if (groups1.length || groups2.length) {
+            throw new UserInputError(
+              `Settle up all the balances before leaving the group`
+            );
+          }
+          await GroupMembers.deleteOne({ groupID, memberID: user.id });
+          await User.findByIdAndUpdate(user.id, {
+            $pull: { groups: groupID },
+          });
+          return { updateStatus: 'left from group' };
+        }
+      } catch (error) {
+        throw new Error(error);
+      }
+    },
   },
 };
-
-// @route post api/my-groups/accept-invitation
-// @desc accept group invitation
-// @access Private
-// router.post(
-//   '/accept-invitation',
-//   passport.authenticate('jwt', { session: false }),
-//   async (req, res) => {
-//     const { groupID, groupName } = req.body;
-
-//     try {
-//       const createdBy = await Group.findById(groupID, {
-//         createdBy: 1,
-//         _id: 0,
-//       }).populate({ path: 'createdBy', select: ['userName'] });
-
-//       const member = new GroupMembers({ groupID, memberID: req.user.id });
-//       member.save();
-
-//       const activity = new Activity({ actionBy: req.user.id, groupID });
-//       activity.action = `${createdBy.createdBy.userName} added ${req.user.userName} to the group "${groupName}"`;
-//       activity.save();
-
-//       await User.findByIdAndUpdate(req.user.id, {
-//         $addToSet: { groups: groupID },
-//         $pull: {
-//           invites: groupID,
-//         },
-//       });
-
-//       res.json('Invitation Accepted');
-//     } catch (error) {
-//       console.error(error);
-//       res.status(500).send('Server error');
-//     }
-//   }
-// );
-
-// // @route post api/my-groups/leave-group
-// // @desc reject group invitation
-// // @access Private
-// router.post(
-//   '/leave-group',
-//   passport.authenticate('jwt', { session: false }),
-//   async (req, res) => {
-//     const { groupID, groupName } = req.body;
-
-//     try {
-//       const currentUserBalances = await User.findById(req.user.id, {
-//         iOwe: 1,
-//         owedToMe: 1,
-//         _id: 0,
-//       });
-//       const groups1 = currentUserBalances.iOwe.filter((ele) => {
-//         return String(ele.groupID) === String(groupID);
-//       });
-//       const groups2 = currentUserBalances.owedToMe.filter((ele) => {
-//         return String(ele.groupID) === String(groupID);
-//       });
-
-//       if (groups1.length || groups2.length) {
-//         return res.status(400).json({
-//           errors: [
-//             {
-//               msg: `Settle up all the balances before leaving the group`,
-//             },
-//           ],
-//         });
-//       }
-
-//       await GroupMembers.deleteOne({ groupID, memberID: req.user.id });
-//       await User.findByIdAndUpdate(req.user.id, { $pull: { groups: groupID } });
-//       const activity = new Activity({
-//         actionBy: req.user.id,
-//         action: `${req.user.userName} left from the group ${groupName}`,
-//         groupID,
-//       });
-//       activity.save();
-//       res.send('left from group');
-//     } catch (error) {
-//       console.log(error);
-//       res.status(500).send('Server error');
-//     }
-//   }
-// );
